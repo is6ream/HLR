@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Демо HLR запросов | Unibell</title>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #50ffea;
+            --secondary: #9333ea;
+            --hlr-green: #00ff88;
+            --hlr-orange: #ff6b00;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a2439 100%);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+
+        .logo {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 700;
+            font-size: 32px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .auth-flow {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .flow-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--bg-dark);
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(80, 255, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-hlr {
+            background: linear-gradient(135deg, var(--hlr-green), var(--hlr-orange));
+        }
+
+        .step {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .step.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* HLR Results Simulation - ИСПРАВЛЕННЫЕ СТИЛИ */
+        .hlr-simulation {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed var(--primary);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Важно для правильного flex поведения */
+        }
+
+        .hlr-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hlr-result {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 4px solid var(--hlr-green);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            flex: 1;
+            overflow: hidden; /* Предотвращает выход контента за границы */
+        }
+
+        .hlr-field {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+            min-height: 25px; /* Фиксированная высота для выравнивания */
+        }
+
+        .hlr-label {
+            color: var(--text-muted);
+            font-weight: 600;
+            flex-shrink: 0;
+            min-width: 120px; /* Фиксированная ширина для меток */
+        }
+
+        .hlr-value {
+            color: var(--hlr-green);
+            font-weight: 700;
+            text-align: right;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .hlr-status-active {
+            color: var(--hlr-green);
+        }
+
+        .hlr-status-inactive {
+            color: var(--hlr-orange);
+        }
+
+        .network-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .network-active {
+            background: var(--hlr-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .network-inactive {
+            background: var(--hlr-orange);
+        }
+
+        .status-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timer {
+            text-align: center;
+            margin: 20px 0;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .button-group .btn {
+            margin-top: 0;
+        }
+
+        .info-panel {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .benefits-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .benefits-list li {
+            margin-bottom: 15px;
+            padding-left: 25px;
+            position: relative;
+            color: var(--text-light);
+        }
+
+        .benefits-list li:before {
+            content: "✓";
+            color: var(--primary);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .tech-specs {
+            background: rgba(80, 255, 234, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid var(--primary);
+        }
+
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Адаптация для планшетов */
+        @media (max-width: 1024px) {
+            .container {
+                max-width: 95%;
+            }
+            
+            .demo-container {
+                gap: 30px;
+            }
+            
+            .auth-flow, .info-panel {
+                padding: 30px;
+            }
+            
+            .header {
+                margin-bottom: 30px;
+                padding: 15px;
+            }
+        }
+
+        /* Адаптация для мобильных устройств */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .demo-container {
+                grid-template-columns: 1fr;
+                gap: 25px;
+                margin-bottom: 30px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+                margin-bottom: 25px;
+                padding: 10px;
+            }
+            
+            .logo {
+                font-size: 28px;
+            }
+            
+            .company-info {
+                text-align: center;
+            }
+            
+            .auth-flow, .info-panel {
+                padding: 25px 20px;
+                border-radius: 15px;
+                min-height: 400px;
+            }
+            
+            .flow-title {
+                font-size: 22px;
+                margin-bottom: 25px;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            input {
+                padding: 12px 15px;
+                font-size: 16px;
+            }
+            
+            .btn {
+                padding: 14px 20px;
+                font-size: 16px;
+            }
+            
+            .hlr-simulation {
+                padding: 20px;
+                margin: 18px 0;
+            }
+            
+            .hlr-field {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .hlr-label {
+                min-width: auto;
+            }
+            
+            .hlr-value {
+                justify-content: flex-start;
+                width: 100%;
+            }
+            
+            .timer {
+                font-size: 16px;
+                margin: 18px 0;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            footer {
+                padding: 25px 15px;
+                font-size: 14px;
+            }
+        }
+
+        /* Адаптация для маленьких мобильных устройств */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+            }
+            
+            .logo {
+                font-size: 24px;
+            }
+            
+            .auth-flow, .info-panel {
+                padding: 20px 15px;
+                border-radius: 12px;
+                min-height: 350px;
+            }
+            
+            .flow-title {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .form-group {
+                margin-bottom: 18px;
+            }
+            
+            label {
+                font-size: 15px;
+                margin-bottom: 8px;
+            }
+            
+            input {
+                padding: 12px;
+                font-size: 16px;
+            }
+            
+            .btn {
+                padding: 13px 18px;
+                font-size: 15px;
+            }
+            
+            .hlr-simulation {
+                padding: 15px;
+                margin: 16px 0;
+                font-size: 14px;
+            }
+            
+            .benefits-list li {
+                font-size: 14px;
+                margin-bottom: 12px;
+                padding-left: 22px;
+            }
+            
+            footer {
+                padding: 20px 10px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">UNIBELL</div>
+            <div class="company-info">
+                <div style="color: var(--primary); font-weight: 600;">HLR Lookup запросы</div>
+                <div style="color: var(--text-muted); font-size: 14px;">Проверка статуса мобильных номеров</div>
+            </div>
+        </header>
+        
+        <div class="demo-container">
+            <div class="auth-flow">
+                <h2 class="flow-title">Проверка номера через HLR</h2>
+                
+                <!-- Шаг 1: Ввод номера -->
+                <div class="step active" id="step1">
+                    <div class="form-group">
+                        <label for="phone">Мобильный номер для проверки</label>
+                        <input type="text" id="phone" placeholder="+79123456789" required>
+                    </div>
+                    
+                    <button class="btn btn-hlr" id="sendHlrBtn">
+                        <i class="fas fa-satellite-dish"></i> Проверить номер
+                    </button>
+                </div>
+                
+                <!-- Шаг 2: Результаты HLR запроса -->
+                <div class="step" id="step2">
+                    <div class="hlr-simulation">
+                        <div class="hlr-header">
+                            <h3 style="color: var(--primary); margin-bottom: 10px;">
+                                <i class="fas fa-satellite"></i> РЕЗУЛЬТАТЫ ПРОВЕРКИ
+                            </h3>
+                            <div style="color: var(--text-muted); font-size: 14px;">
+                                Запрос ID: #HLR-<span id="queryId">000000</span>
+                            </div>
+                        </div>
+                        
+                        <div class="hlr-result">
+                            <div class="hlr-field">
+                                <span class="hlr-label">Номер:</span>
+                                <span class="hlr-value" id="resultNumber">+79123456789</span>
+                            </div>
+                            <div class="hlr-field">
+                                <span class="hlr-label">Статус:</span>
+                                <span class="hlr-value" id="resultStatus">
+                                    <span class="network-indicator network-active"></span>
+                                    <span class="status-text">АКТИВЕН</span>
+                                </span>
+                            </div>
+                            <div class="hlr-field">
+                                <span class="hlr-label">Оператор:</span>
+                                <span class="hlr-value" id="resultOperator">MTS Russia</span>
+                            </div>
+                            <div class="hlr-field">
+                                <span class="hlr-label">Тип сети:</span>
+                                <span class="hlr-value" id="resultNetwork">GSM</span>
+                            </div>
+                            <div class="hlr-field">
+                                <span class="hlr-label">Роуминг:</span>
+                                <span class="hlr-value" id="resultRoaming">ДОМАШНЯЯ СЕТЬ</span>
+                            </div>
+                            <div class="hlr-field">
+                                <span class="hlr-label">Поддержка SMS:</span>
+                                <span class="hlr-value" id="resultSms">ДА</span>
+                            </div>
+                            <div class="hlr-field">
+                                <span class="hlr-label">Время ответа:</span>
+                                <span class="hlr-value" id="resultResponseTime">1.2с</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="timer" id="timer">
+                        Запрос выполнен за: <span id="responseTime">0.0с</span>
+                    </p>
+                    
+                    <div class="button-group">
+                        <button class="btn" id="newQueryBtn">
+                            <i class="fas fa-redo"></i> Новый запрос
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h2 style="color: var(--primary); margin-bottom: 30px; text-align: center;">Преимущества HLR Lookup</h2>
+                
+                <ul class="benefits-list">
+                    <li>Мгновенная проверка статуса мобильного номера</li>
+                    <li>Определение домашнего оператора</li>
+                    <li>Проверка активности номера в реальном времени</li>
+                    <li>Обнаружение роуминга</li>
+                    <li>Проверка поддержки SMS</li>
+                    <li>Определение типа сети (2G/3G/4G)</li>
+                </ul>
+
+                <div class="tech-specs">
+                    <h3 style="color: var(--primary); margin-bottom: 15px;">Технические характеристики</h3>
+                    <div class="spec-item">
+                        <span>Время ответа:</span>
+                        <span style="color: var(--hlr-green);">1-3 секунды</span>
+                    </div>
+                    <div class="spec-item">
+                        <span>Глобальное покрытие:</span>
+                        <span style="color: var(--hlr-green);">200+ операторов</span>
+                    </div>
+                    <div class="spec-item">
+                        <span>Точность:</span>
+                        <span style="color: var(--hlr-green);">99.8%</span>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(80, 255, 234, 0.1); padding: 20px; border-radius: 10px; margin-top: 20px; border: 1px solid var(--primary);">
+                    <h3 style="color: var(--primary); margin-bottom: 15px;">Как работает проверка:</h3>
+                    <ol style="color: var(--text-light); padding-left: 20px;">
+                        <li style="margin-bottom: 8px;">Введите мобильный номер для проверки</li>
+                        <li style="margin-bottom: 8px;">Нажмите "Проверить номер"</li>
+                        <li style="margin-bottom: 8px;">Система выполнит HLR запрос</li>
+                        <li style="margin-bottom: 8px;">Получите детальную информацию о номере</li>
+                        <li>Используйте данные для оптимизации коммуникаций</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Демонстрация сервиса HLR Lookup запросов Unibell &copy; 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            const phoneInput = document.getElementById('phone');
+            const sendHlrBtn = document.getElementById('sendHlrBtn');
+            const newQueryBtn = document.getElementById('newQueryBtn');
+            
+            // Elements for results
+            const queryId = document.getElementById('queryId');
+            const resultNumber = document.getElementById('resultNumber');
+            const resultStatus = document.getElementById('resultStatus');
+            const resultOperator = document.getElementById('resultOperator');
+            const resultNetwork = document.getElementById('resultNetwork');
+            const resultRoaming = document.getElementById('resultRoaming');
+            const resultSms = document.getElementById('resultSms');
+            const resultResponseTime = document.getElementById('resultResponseTime');
+            const responseTime = document.getElementById('responseTime');
+
+            // Mock data for different operators and statuses
+            const operators = [
+                { name: "MTS Russia", country: "RU", network: "GSM" },
+                { name: "Beeline Russia", country: "RU", network: "LTE" },
+                { name: "MegaFon Russia", country: "RU", network: "GSM" },
+                { name: "Tele2 Russia", country: "RU", network: "LTE" }
+            ];
+
+            function generateRandomQueryId() {
+                return Math.floor(100000 + Math.random() * 900000).toString();
+            }
+
+            function getRandomOperator() {
+                return operators[Math.floor(Math.random() * operators.length)];
+            }
+
+            function simulateHlrRequest(phoneNumber) {
+                const startTime = Date.now();
+                
+                // Generate random results
+                const operator = getRandomOperator();
+                const responseTime = (Math.random() * 2 + 0.5).toFixed(1);
+                
+                // 80% chance for active status
+                const isActive = Math.random() > 0.2;
+                const isRoaming = Math.random() > 0.7;
+                
+                return {
+                    queryId: generateRandomQueryId(),
+                    number: phoneNumber,
+                    operator: operator.name,
+                    network: operator.network,
+                    status: isActive ? "АКТИВЕН" : "НЕАКТИВЕН",
+                    roaming: isRoaming ? "РОУМИНГ" : "ДОМАШНЯЯ СЕТЬ",
+                    sms: isActive ? "ДА" : "НЕТ",
+                    responseTime: responseTime,
+                    processingTime: Date.now() - startTime
+                };
+            }
+
+            sendHlrBtn.addEventListener('click', function() {
+                const phone = phoneInput.value.trim();
+                
+                if (!phone || phone.length < 5) {
+                    alert('Пожалуйста, введите корректный мобильный номер');
+                    return;
+                }
+
+                // Show loading state
+                sendHlrBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверяем номер...';
+                sendHlrBtn.disabled = true;
+
+                // Simulate network delay
+                setTimeout(() => {
+                    const results = simulateHlrRequest(phone);
+                    
+                    // Update UI with results
+                    queryId.textContent = results.queryId;
+                    resultNumber.textContent = results.number;
+                    resultOperator.textContent = results.operator;
+                    resultNetwork.textContent = results.network;
+                    resultRoaming.textContent = results.roaming;
+                    resultSms.textContent = results.sms;
+                    resultResponseTime.textContent = results.responseTime + 'с';
+                    responseTime.textContent = results.responseTime + 'с';
+                    
+                    // Update status with appropriate styling
+                    const statusIndicator = resultStatus.querySelector('.network-indicator');
+                    const statusText = resultStatus.querySelector('.status-text');
+                    
+                    if (results.status === "АКТИВЕН") {
+                        statusIndicator.className = 'network-indicator network-active';
+                        statusText.textContent = 'АКТИВЕН';
+                        statusText.className = 'status-text hlr-status-active';
+                        resultSms.className = 'hlr-value hlr-status-active';
+                    } else {
+                        statusIndicator.className = 'network-indicator network-inactive';
+                        statusText.textContent = 'НЕАКТИВЕН';
+                        statusText.className = 'status-text hlr-status-inactive';
+                        resultSms.className = 'hlr-value hlr-status-inactive';
+                    }
+                    
+                    // Switch to results step
+                    step1.classList.remove('active');
+                    step2.classList.add('active');
+                    
+                    // Reset button
+                    sendHlrBtn.innerHTML = '<i class="fas fa-satellite-dish"></i> Проверить номер';
+                    sendHlrBtn.disabled = false;
+                }, 1500);
+            });
+
+            newQueryBtn.addEventListener('click', function() {
+                step2.classList.remove('active');
+                step1.classList.add('active');
+                phoneInput.value = '';
+                phoneInput.focus();
+            });
+
+            // Format phone input
+            phoneInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^\d+]/g, '');
+            });
+
+            // Focus on input
+            phoneInput.focus();
+        });
+    </script>
+</body>
+</html>
